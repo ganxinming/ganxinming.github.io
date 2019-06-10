@@ -4,7 +4,7 @@
 <meta name="description" content="" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Synchronized关键字 | Joke</title>
-<link rel="shortcut icon" href="https://ganxinming.github.io/favicon.ico?v=1560137883495">
+<link rel="shortcut icon" href="https://ganxinming.github.io/favicon.ico?v=1560138490927">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://ganxinming.github.io/styles/main.css">
@@ -20,7 +20,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://ganxinming.github.io">
-  <img class="avatar" src="https://ganxinming.github.io/images/avatar.png?v=1560137883495" alt="">
+  <img class="avatar" src="https://ganxinming.github.io/images/avatar.png?v=1560138490927" alt="">
   </a>
   <h1 class="site-title">
     Joke
@@ -99,8 +99,75 @@ public synchronized  void m(){}<br>
 4.给静态方法加锁。（这里等同于T.class，给类对象加锁）
 public synchronized static void m() 。<br>
 5.给类对象加锁<br>
-synchronized(T.class)<br>
-<strong>记住Synchonized只是锁对象</strong></p>
+synchronized(T.class)</p>
+<h3 id="记住synchonized只是锁对象"><strong>记住Synchonized只是锁对象</strong></h3>
+<p>代码如下</p>
+<pre><code>package basis.ThreadTest.simple;
+
+/**
+ * @Author Badribbit
+ * @create 2019/6/10 10:52
+ * @Define Synchronized关键字测试(五种锁对象)
+ * @Tutorials
+ * @Opinion 1.new Thread(synchronizedTest)和new Thread(new SynchronizedTest())的区别。
+ *          锁当前对象或变量对象时对同一个synchronizedTest就有效，但是对每次new SynchronizedTest()无效，因为这些是新new的对象
+ *          锁类对象，对new SynchronizedTest()无效。但是得保证里面使用的变量是静态的，如果不是静态的，实际上那些成员变量还是各有各的默认值,
+ *          不能达到统一访问的目的。
+ *          2.锁静态方法，里面必须是static变量。锁class对象，没有必须，但是想要统一访问，也要使用static变量。
+ */
+public class SynchronizedTest implements Runnable{
+    private  Object o=new Object();
+    private  volatile int con=0;
+    private  volatile static int sum=0;
+    public void m1() throws InterruptedException {
+        synchronized (o) {
+            System.out.println(Thread.currentThread().getName() + &quot;的con是:&quot; + con++);
+            Thread.sleep(100);
+        }
+    }
+    public void m2() throws InterruptedException {
+        synchronized (this) {
+            System.out.println(Thread.currentThread().getName() + &quot;的con是:&quot; + con++);
+            Thread.sleep(100);
+        }
+    }
+    public synchronized void m3() throws InterruptedException {
+            System.out.println(Thread.currentThread().getName() + &quot;的con是:&quot; + con++);
+            Thread.sleep(100);
+
+    }
+    public synchronized static void m4() throws InterruptedException {
+        System.out.println(Thread.currentThread().getName() + &quot;的sum是:&quot; + sum++);
+        Thread.sleep(100);
+    }
+    public void m5() throws InterruptedException {
+        synchronized (SynchronizedTest.class) {
+            System.out.println(Thread.currentThread().getName() + &quot;的sum是:&quot; + sum++);
+            Thread.sleep(100);
+        }
+    }
+    @Override
+    public void run() {
+        try {
+            m5();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void main(String[] args) {
+        SynchronizedTest synchronizedTest=new SynchronizedTest();
+        /*for (int i=0;i&lt;9;i++){
+            new Thread(synchronizedTest,String.valueOf((char)(i+97))).start();
+        }*/
+        for (int i=0;i&lt;9;i++){
+            new Thread(new SynchronizedTest(),String.valueOf((char)(i+97))).start();
+        }
+    }
+
+
+}
+
+</code></pre>
 
             </div>
           </article>
