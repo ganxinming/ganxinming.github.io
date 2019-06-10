@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>关于 | Gridea</title>
+<title>Synchronized关键字 | Gridea</title>
 <meta name="description" content="那些杀不死你的，必将使你变得更加怪异。">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -96,14 +96,42 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">关于</h2>
-            <div class="post-date">2019-01-25</div>
+            <h2 class="post-title">Synchronized关键字</h2>
+            <div class="post-date">2019-06-10</div>
             
             <div class="post-content">
-              <p>人间不值得啊，但是日子还是得向前过.......</p>
+              <h2 id="synchonized分别不同加锁方法">Synchonized分别不同加锁方法</h2>
+<p>1.给某个属性对象加锁。
+private Object o=new Object();<br>
+sychronized(o){}.<br>
+2.给当前对象加锁(锁的是当前对象，当多个线程调用这个类时，使用同一个对象时，只有先获得的先执行)<br>
+sychronized(this){}.<br>
+3.给方法加锁。（相当于sychronized(this），就是加锁当前对象）
+public synchronized  void m(){}<br>
+4.给静态方法加锁。（这里等同于T.class，给类对象加锁）
+public synchronized static void m() 。<br>
+5.给类对象加锁<br>
+synchronized(T.class)</p>
 
             </div>
             
+              <div class="tag-container">
+                
+                  <a href="https://ganxinming.github.io/tag/NvcN0lUBn" class="tag">
+                    java多线程
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://ganxinming.github.io/post/di-yi-pian">
+                  <h3 class="post-title">
+                    第一篇
+                  </h3>
+                </a>
+              </div>
             
 
             

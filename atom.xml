@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ganxinming.github.io</id>
     <title>Gridea</title>
-    <updated>2019-06-09T06:59:04.404Z</updated>
+    <updated>2019-06-10T02:46:58.003Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ganxinming.github.io"/>
     <link rel="self" href="https://ganxinming.github.io/atom.xml"/>
@@ -10,6 +10,26 @@
     <logo>https://ganxinming.github.io/images/avatar.png</logo>
     <icon>https://ganxinming.github.io/favicon.ico</icon>
     <rights>All rights reserved 2019, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[Synchronized关键字]]></title>
+        <id>https://ganxinming.github.io/post/synchronized-guan-jian-zi</id>
+        <link href="https://ganxinming.github.io/post/synchronized-guan-jian-zi">
+        </link>
+        <updated>2019-06-10T02:33:58.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="synchonized分别不同加锁方法">Synchonized分别不同加锁方法</h2>
+<p>1.给某个属性对象加锁。
+private Object o=new Object();<br>
+sychronized(o){}.<br>
+2.给当前对象加锁(锁的是当前对象，当多个线程调用这个类时，使用同一个对象时，只有先获得的先执行)<br>
+sychronized(this){}.<br>
+3.给方法加锁。（相当于sychronized(this），就是加锁当前对象）
+public synchronized  void m(){}<br>
+4.给静态方法加锁。（这里等同于T.class，给类对象加锁）
+public synchronized static void m() 。<br>
+5.给类对象加锁<br>
+synchronized(T.class)</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[第一篇]]></title>
         <id>https://ganxinming.github.io/post/di-yi-pian</id>
