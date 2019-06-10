@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="description" content="" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>关于 | Joke</title>
+<title>Lambda表达式 | Joke</title>
 <link rel="shortcut icon" href="https://ganxinming.github.io/favicon.ico?v=1560170750442">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
@@ -74,22 +74,96 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              关于
+              Lambda表达式
             </h2>
             <div class="post-info">
               <time class="post-time">
-                · 2019-01-25 ·
+                · 2019-06-10 ·
               </time>
+              
+                <a href="https://ganxinming.github.io/tag/KgbbN3Rbu" class="post-tags">
+                  # Lambda
+                </a>
               
             </div>
             
             <div class="post-content">
-              <p>人间不值得啊，但是日子还是得向前过.......</p>
+              <h3 id="lambda简单使用">Lambda简单使用</h3>
+<h4 id="1基本语法">1.基本语法</h4>
+<p>基本语法:
+(parameters) -&gt; expression
+或
+(parameters) -&gt;{ statements; }</p>
+<pre><code>/ 1. 不需要参数,返回值为 5  
+() -&gt; 5  
+  
+// 2. 接收一个参数(数字类型),返回其2倍的值  
+x -&gt; 2 * x  
+  
+// 3. 接受2个参数(数字),并返回他们的差值  
+(x, y) -&gt; x – y  
+  
+// 4. 接收2个int型整数,返回他们的和  
+(int x, int y) -&gt; x + y  
+  
+// 5. 接受一个 string 对象,并在控制台打印,不返回任何值(看起来像是返回void)  
+(String s) -&gt; System.out.print(s)  
+</code></pre>
+<h4 id="2遍历list">2.遍历list</h4>
+<pre><code>List&lt;String&gt; players =  Arrays.asList(atp);  
+  
+// 以前的循环方式  
+for (String player : players) {  
+     System.out.print(player + &quot;; &quot;);  
+}  
+  
+// 使用 lambda 表达式以及函数操作(functional operation)  
+players.forEach((player) -&gt; System.out.print(player + &quot;; &quot;));  
+   
+// 在 Java 8 中使用双冒号操作符(double colon operator)  
+players.forEach(System.out::println);  
+</code></pre>
+<h4 id="3实现线程">3.实现线程</h4>
+<pre><code>// 1.1使用匿名内部类  
+new Thread(new Runnable() {  
+    @Override  
+    public void run() {  
+        System.out.println(&quot;Hello world !&quot;);  
+    }  
+}).start();  
+  
+// 1.2使用 lambda expression  
+new Thread(() -&gt; System.out.println(&quot;Hello world !&quot;)).start();  
+  
+// 2.1使用匿名内部类  
+Runnable race1 = new Runnable() {  
+    @Override  
+    public void run() {  
+        System.out.println(&quot;Hello world !&quot;);  
+    }  
+};  
+  
+// 2.2使用 lambda expression  
+Runnable race2 = () -&gt; System.out.println(&quot;Hello world !&quot;);  
+   
+// 直接调用 run 方法(没开新线程哦!)  
+race1.run();  
+race2.run();  
+</code></pre>
 
             </div>
           </article>
         </div>
     
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://ganxinming.github.io/post/synchronized-guan-jian-zi">
+              <h3 class="post-title">
+                Synchronized关键字
+              </h3>
+            </a>
+          </div>  
         
 
         

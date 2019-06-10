@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ganxinming.github.io</id>
     <title>Joke</title>
-    <updated>2019-06-10T03:48:32.793Z</updated>
+    <updated>2019-06-10T12:46:25.866Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ganxinming.github.io"/>
     <link rel="self" href="https://ganxinming.github.io/atom.xml"/>
@@ -10,6 +10,76 @@
     <logo>https://ganxinming.github.io/images/avatar.png</logo>
     <icon>https://ganxinming.github.io/favicon.ico</icon>
     <rights>All rights reserved 2019, Joke</rights>
+    <entry>
+        <title type="html"><![CDATA[Lambda表达式]]></title>
+        <id>https://ganxinming.github.io/post/lambda-biao-da-shi</id>
+        <link href="https://ganxinming.github.io/post/lambda-biao-da-shi">
+        </link>
+        <updated>2019-06-10T12:41:27.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="lambda简单使用">Lambda简单使用</h3>
+<h4 id="1基本语法">1.基本语法</h4>
+<p>基本语法:
+(parameters) -&gt; expression
+或
+(parameters) -&gt;{ statements; }</p>
+<pre><code>/ 1. 不需要参数,返回值为 5  
+() -&gt; 5  
+  
+// 2. 接收一个参数(数字类型),返回其2倍的值  
+x -&gt; 2 * x  
+  
+// 3. 接受2个参数(数字),并返回他们的差值  
+(x, y) -&gt; x – y  
+  
+// 4. 接收2个int型整数,返回他们的和  
+(int x, int y) -&gt; x + y  
+  
+// 5. 接受一个 string 对象,并在控制台打印,不返回任何值(看起来像是返回void)  
+(String s) -&gt; System.out.print(s)  
+</code></pre>
+<h4 id="2遍历list">2.遍历list</h4>
+<pre><code>List&lt;String&gt; players =  Arrays.asList(atp);  
+  
+// 以前的循环方式  
+for (String player : players) {  
+     System.out.print(player + &quot;; &quot;);  
+}  
+  
+// 使用 lambda 表达式以及函数操作(functional operation)  
+players.forEach((player) -&gt; System.out.print(player + &quot;; &quot;));  
+   
+// 在 Java 8 中使用双冒号操作符(double colon operator)  
+players.forEach(System.out::println);  
+</code></pre>
+<h4 id="3实现线程">3.实现线程</h4>
+<pre><code>// 1.1使用匿名内部类  
+new Thread(new Runnable() {  
+    @Override  
+    public void run() {  
+        System.out.println(&quot;Hello world !&quot;);  
+    }  
+}).start();  
+  
+// 1.2使用 lambda expression  
+new Thread(() -&gt; System.out.println(&quot;Hello world !&quot;)).start();  
+  
+// 2.1使用匿名内部类  
+Runnable race1 = new Runnable() {  
+    @Override  
+    public void run() {  
+        System.out.println(&quot;Hello world !&quot;);  
+    }  
+};  
+  
+// 2.2使用 lambda expression  
+Runnable race2 = () -&gt; System.out.println(&quot;Hello world !&quot;);  
+   
+// 直接调用 run 方法(没开新线程哦!)  
+race1.run();  
+race2.run();  
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Synchronized关键字]]></title>
         <id>https://ganxinming.github.io/post/synchronized-guan-jian-zi</id>
