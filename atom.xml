@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ganxinming.github.io</id>
     <title>Joke</title>
-    <updated>2019-06-12T14:24:24.771Z</updated>
+    <updated>2019-07-12T12:16:52.464Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ganxinming.github.io"/>
     <link rel="self" href="https://ganxinming.github.io/atom.xml"/>
@@ -10,6 +10,45 @@
     <logo>https://ganxinming.github.io/images/avatar.png</logo>
     <icon>https://ganxinming.github.io/favicon.ico</icon>
     <rights>All rights reserved 2019, Joke</rights>
+    <entry>
+        <title type="html"><![CDATA[git常用命令]]></title>
+        <id>https://ganxinming.github.io/post/git-chang-yong-ming-ling</id>
+        <link href="https://ganxinming.github.io/post/git-chang-yong-ming-ling">
+        </link>
+        <updated>2019-07-12T12:14:00.000Z</updated>
+        <content type="html"><![CDATA[<p>常用命令：</p>
+<p>git log :查看日志</p>
+<p>git log  --pretty=oneline :简化日志</p>
+<p>git reflog :查看曾使用的命令,</p>
+<p>git reset  -- hard HEAD^  : 回退到上一个版本，HEAD代表当前版本,可以写成 HEAD~3 ，回退三个版本</p>
+<p>git reset -- hard  [commit id] : 可以通过commit id 来回退版本，commit id不用写全。</p>
+<h5 id="详细介绍reset的参数">详细介绍reset的参数：</h5>
+<p>git reset  -- soft HEAD^ :将所有已提交的内容恢复到暂存区，本地文件区不受影响。（仅版本库回退一个版本）</p>
+<p>git reset  (-- mixed,默认) HEAD^: 将所有已提交的内容和暂存区的内容恢复到上一次版本，本地文件不受影响。(版本库和暂存区 恢复上一次版本)</p>
+<p>git reset  -- hard HEAD^	：已提交内容回退上一次版本，清空暂存区，本地文件也回退上一次版本。(包括本地工作区，全都回退上一次版本)</p>
+<p>git diff HEAD -- test.txt   :查看当前工作区和版本库的区别。</p>
+<h5 id="提下三个区间">提下三个区间：</h5>
+<p>工作区：每个人各自写代码的地方。</p>
+<p>暂存区：git add 后，代码add后的地方。</p>
+<p>版本库：git commit 提交后，提交的地方。</p>
+<h4 id="撤销修改">撤销修改：</h4>
+<p>假如修改文件还在工作区，没有进行add提交，可使用如下命令恢复：</p>
+<p>git checkout -- test.txt  （从版本库拉取文件，使工作区恢复和版本库一致）</p>
+<p>假如文件已经add，进入暂存区，但是还没有提交，使用如下：</p>
+<p>git reset HEAD test.txt   （使暂存区修改撤销，回到未add前，即commit之前，add之后的操作都回退到add之前。）然后，可以再执行下面命令。</p>
+<p>git checkout -- test.txt。</p>
+<h3 id="分支">分支：</h3>
+<p>创建分支：git branch dev</p>
+<p>切换分支：git checkout dev （相当于将当前工作区间从dev复制一份）</p>
+<p>或者使用缩写:git checkout  -b dev</p>
+<p>查看当前分支：git branch</p>
+<p>合并分支：git merge dev （将dev分支合并到当前分支<master>）</p>
+<p>删除分支：git branch -d dev</p>
+<h4 id="合并分支发生冲突时">合并分支发生冲突时：</h4>
+<p>必须手动解决，查看哪些地方有修改的，手动改正。改正add，commit后，自动合并。</p>
+<p>查看分支合并树：git log --graph</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Executor家族]]></title>
         <id>https://ganxinming.github.io/post/executor-jia-zu</id>
