@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ganxinming.github.io</id>
     <title>Joke</title>
-    <updated>2019-07-12T12:16:52.464Z</updated>
+    <updated>2019-07-28T06:09:21.807Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ganxinming.github.io"/>
     <link rel="self" href="https://ganxinming.github.io/atom.xml"/>
@@ -56,10 +56,10 @@
         </link>
         <updated>2019-06-12T07:51:52.000Z</updated>
         <content type="html"><![CDATA[<h2 id="executor">Executor</h2>
-<p>Executor：执行器是一个接口，只有一个方法execute执行任务，在java的线程池的框架里边，这个是最顶层的接口；
-Executors ：操作Executor的一个工具类，用于创建线程池。
+<p>Executor：执行器是一个接口，只有一个方法execute执行任务，在java的线程池的框架里边，这个是最顶层的接口；<br>
+Executors ：操作Executor的一个工具类，用于创建线程池。<br>
 ExecutorService：从Executor接口继承,可以管理线程池。是他的Executors.newFixedThreadPool(2);返回值。<br>
-Callable：是一个接口，类似于Runnable接口。实现该接口需重写call方法。<strong>该方法有返回值</strong>。
+Callable：是一个接口，类似于Runnable接口。实现该接口需重写call方法。<strong>该方法有返回值</strong>。<br>
 Future ：是线程池提交处理callable后，产生的返回值。</p>
 <h4 id="四种线程池">四种线程池</h4>
 <p>种线程池区别：</p>
@@ -192,30 +192,30 @@ class OtherCallable implements Callable{
         <content type="html"><![CDATA[<h3 id="实现并发1阻塞式加锁-2非阻塞式循环cas操作">实现并发：1.阻塞式，加锁。2.非阻塞式，循环CAS操作。</h3>
 <h3 id="1concurrentlinkedqueue">1.ConcurrentLinkedQueue</h3>
 <h5 id="简介">简介：</h5>
-<p>一个基于链接节点的无界线程安全队列。此队列按照 FIFO（先进先出）原则对元素进行排序。队列的头部 是队列中时间最长的元素。队列的尾部 是队列中时间最短的元素。
+<p>一个基于链接节点的无界线程安全队列。此队列按照 FIFO（先进先出）原则对元素进行排序。队列的头部 是队列中时间最长的元素。队列的尾部 是队列中时间最短的元素。<br>
 新的元素插入到队列的尾部，队列获取操作从队列头部获得元素。当多个线程共享访问一个公共 collection 时，ConcurrentLinkedQueue 是一个恰当的选择。此队列不允许使用 null 元素。</p>
 <h4 id="常用api">常用API：</h4>
-<p>offer( E e) 将元素插入尾部 （类似add）
-poll() 取出队头元素并移除队列，如果没有，返回null（类似pop）
+<p>offer( E e) 将元素插入尾部 （类似add）<br>
+poll() 取出队头元素并移除队列，如果没有，返回null（类似pop）<br>
 peek() 取出队头元素不移除队列.</p>
 <h3 id="2concurrenthashmap">2.ConcurrentHashMap</h3>
 <h4 id="简介-2">简介：</h4>
 <h4 id="jdk18之前">jdk1.8之前：</h4>
-<p>ConcurrentHashMap的数据结构是由一个Segment数组和多个HashEntry组成，如下图所示
-<img src="https://ganxinming.github.io/post-images/1560259573550.png" alt="">
-将整个hashmap分成几个小的map，每个segment都是一个锁；与hashtable相比，这么设计的目的是对于put, remove等操作，可以减少并发冲突。
-并发控制：是将一个大的table分割成多个小的table来进行加锁，也就是的锁分离技术。
-不属于同一个片段的节点可以并发操作，大大提高了性能
+<p>ConcurrentHashMap的数据结构是由一个Segment数组和多个HashEntry组成，如下图所示<br>
+<img src="https://ganxinming.github.io/post-images/1560259573550.png" alt=""><br>
+将整个hashmap分成几个小的map，每个segment都是一个锁；与hashtable相比，这么设计的目的是对于put, remove等操作，可以减少并发冲突。<br>
+并发控制：是将一个大的table分割成多个小的table来进行加锁，也就是的锁分离技术。<br>
+不属于同一个片段的节点可以并发操作，大大提高了性能<br>
 本质上Segment类就是一个小的hashmap，里面table数组存储了各个节点的数据，继承了ReentrantLock, 可以作为互拆锁使用。</p>
 <h4 id="如果不是segments而是对整个table加锁那么效率低下也就是hashtbalehashtable是对整个表加锁效率低下">如果不是segments，而是对整个table加锁，那么效率低下，也就是hashTbale，Hashtable是对整个表加锁，效率低下。</h4>
 <h4 id="jdk18之后">jdk1.8之后：</h4>
-<p>改进一：取消segments字段，直接采用transient volatile HashEntry&lt;K,V&gt;[] table保存数据，采用table数组元素作为锁，从而实现了对每一行数据进行加锁，进一步减少并发冲突的概率。jDK1.8的实现已经摒弃了Segment的概念，而是直接用Node数组+链表+红黑树的数据结构来实现，并发控制使用Synchronized和CAS来操作.如下：
-<img src="https://ganxinming.github.io/post-images/1560260059020.png" alt="">
+<p>改进一：取消segments字段，直接采用transient volatile HashEntry&lt;K,V&gt;[] table保存数据，采用table数组元素作为锁，从而实现了对每一行数据进行加锁，进一步减少并发冲突的概率。jDK1.8的实现已经摒弃了Segment的概念，而是直接用Node数组+链表+红黑树的数据结构来实现，并发控制使用Synchronized和CAS来操作.如下：<br>
+<img src="https://ganxinming.github.io/post-images/1560260059020.png" alt=""><br>
 改进二：将原先table数组＋单向链表的数据结构，变更为table数组＋单向链表＋红黑树的结构。对于hash表来说，最核心的能力在于将key hash之后能均匀的分布在数组中</p>
 <h3 id="总结结构采用table数组单向链表红黑树的结构并发控制采用synchronized和cas来操作原来是segments和锁分离技术">总结：结构采用table数组＋单向链表＋红黑树的结构，并发控制采用Synchronized和CAS来操作（原来是：segments，和锁分离技术）</h3>
 <h3 id="3concurrentskiplistmap">3.ConcurrentSkipListMap</h3>
 <h4 id="特性支持包并发排序-所以插入速度快">特性：支持包并发，排序。（所以插入速度快）</h4>
-<p>hashmap是无序的。TreeMap是有序的，底层是根据红黑树来维持排序，相对来说复杂。
+<p>hashmap是无序的。TreeMap是有序的，底层是根据红黑树来维持排序，相对来说复杂。<br>
 而ConcurrentSkipListMap，是基于<strong>跳表</strong>。</p>
 <h4 id="跳表">跳表</h4>
 <p>是一种随机化的数据结构，通过“空间来换取时间”的一个算法，建立多级索引，实现以二分查找遍历一个有序链表。时间复杂度等同于红黑树，O(log n)。但实现却远远比红黑树要简单。底层结构，可以百度。</p>
@@ -227,14 +227,14 @@ peek() 取出队头元素不移除队列.</p>
 <h4 id="适合写少读多">适合写少，读多。</h4>
 <h3 id="5blockingqueue">5.BlockingQueue</h3>
 <h4 id="特性">特性：</h4>
-<p>1.当线程向队列中插入元素时，如果队列已满，则阻塞线程，直到队列有空闲位置（非满）
+<p>1.当线程向队列中插入元素时，如果队列已满，则阻塞线程，直到队列有空闲位置（非满）<br>
 2.当线程从队列中取元素（删除队列元素）时，如果队列未空，则阻塞线程，直到队列有元素；</p>
 <h3 id="api">API :</h3>
 <p>offer(E e): 将给定的元素设置到队列中，如果设置成功返回true, 否则返回false. e的值不能为空，否则抛出空指针异常。<br>
 offer(E e, long timeout, TimeUnit unit): 将给定元素在给定的时间内设置到队列中，如果设置成功返回true, 否则返回false.<br>
 add(E e): 将给定元素设置到队列中，如果设置成功返回true, 否则抛出异常。如果是往限定了长度的队列中设置值，推荐使用offer()方法。<br>
 put(E e): 将元素设置到队列中，如果队列中没有多余的空间，该方法会一直阻塞，直到队列中有多余的空间。<br>
-take(): 从队列中获取值，如果队列中没有值，线程会一直阻塞，直到队列中有值，并且该方法取得了该值
+take(): 从队列中获取值，如果队列中没有值，线程会一直阻塞，直到队列中有值，并且该方法取得了该值<br>
 。<br>
 poll(long timeout, TimeUnit unit): 获取并移除此队列的头元素，可以在指定的等待时间前等待可用的元素，timeout表明放弃之前要等待的时间长度，用 unit 的时间单位表示，如果在元素可用前超过了指定的等待时间，则返回null，当等待时可以被中断。</p>
 <h4 id="适用于生产者消费者这种情况">适用于生产者，消费者这种情况。</h4>
@@ -242,12 +242,12 @@ poll(long timeout, TimeUnit unit): 获取并移除此队列的头元素，可以
 <p><strong>LinkedBockingQueue</strong>：是链表实现的阻塞式容器，是无界队列（往里扔多少个元素都可以，内存满足的情况下）<br>
 <strong>ArrayBlockingQueue</strong>：有界队列（需要指定大小）<br>
 <strong>DelayQueue</strong> ：是一个支持延时获取元素的无界阻塞队列。只有在延迟期满时才能从中提取元素。该队列的头部是延迟期满后保存时间最长的Delayed 元素。<br>
-适用场景：定时任务调度（考试后30分钟才能交卷）
+适用场景：定时任务调度（考试后30分钟才能交卷）<br>
 <strong>TransferQueue</strong>：提供了transfer方法，一般是这种情形，有一个队列，消费者线程先启动，然后生产者生产一个东西的时候不是往队列里头仍，它首先去找有没有消费者，如果有消费者，生产的东西不往队列里扔了而是直接给消费者消费；如果没有消费者的话，调用transfer线程就会阻塞；<br>
 <strong>SynchronousQueue叫做没有容量的队列（TransferQueue一种特殊情况），容量为0，生产者生产的东西必须马上消费掉，如果不消费掉就会出问题；调add抛异常（Queue full），调put程序阻塞；</strong></p>
 <h4 id="小结以上五个虽然都不相同但是都是阻塞式即满了阻塞空了等待">小结：以上五个虽然都不相同，但是都是阻塞式，即满了阻塞，空了等待。</h4>
 <h2 id="总结">总结：</h2>
-<p>对于map/set的选择使用
+<p>对于map/set的选择使用<br>
 HashMap       不需要多线程的情况下使用<br>
 TreeMap       不需要多线程的情况下使用<br>
 LinkedHashMap 不需要多线程的情况下使用</p>
@@ -255,19 +255,19 @@ LinkedHashMap 不需要多线程的情况下使用</p>
 Collections.sychronizedXXX  并发量比较小</p>
 <p>ConcurrentHashMap       高并发<br>
 ConcurrentSkipListMap   高并发同时要求排好顺序</p>
-<p>2：队列
+<p>2：队列<br>
 ArrayList        不需要同步的情况<br>
 LinkedList      不需要同步的情况<br>
 Collections.synchronizedXXX  并发量低<br>
 Vector                            并发量低<br>
 CopyOnWriteList              写的时候少，读时候多<br>
 Queue<br>
-CocurrentLinkedQueue //concurrentArrayQueue    高并发队列
-BlockingQueue                                        阻塞式
-LinkedBQ    无界
-ArrayBQ     有界
-TransferQueue   直接给消费者线程，如果没有消费者阻塞
-SynchronusQueue  特殊的transferQueue,容量0
+CocurrentLinkedQueue //concurrentArrayQueue    高并发队列<br>
+BlockingQueue                                        阻塞式<br>
+LinkedBQ    无界<br>
+ArrayBQ     有界<br>
+TransferQueue   直接给消费者线程，如果没有消费者阻塞<br>
+SynchronusQueue  特殊的transferQueue,容量0<br>
 DelayQueue执行定时任务</p>
 ]]></content>
     </entry>
@@ -279,9 +279,9 @@ DelayQueue执行定时任务</p>
         <updated>2019-06-10T12:41:27.000Z</updated>
         <content type="html"><![CDATA[<h3 id="lambda简单使用">Lambda简单使用</h3>
 <h4 id="1基本语法">1.基本语法</h4>
-<p>基本语法:
-(parameters) -&gt; expression
-或
+<p>基本语法:<br>
+(parameters) -&gt; expression<br>
+或<br>
 (parameters) -&gt;{ statements; }</p>
 <pre><code>/ 1. 不需要参数,返回值为 5  
 () -&gt; 5  
@@ -348,14 +348,14 @@ race2.run();
         </link>
         <updated>2019-06-10T02:33:58.000Z</updated>
         <content type="html"><![CDATA[<h2 id="synchonized分别不同加锁方法">Synchonized分别不同加锁方法</h2>
-<p>1.给某个属性对象加锁。
+<p>1.给某个属性对象加锁。<br>
 private Object o=new Object();<br>
 sychronized(o){}.<br>
 2.给当前对象加锁(锁的是当前对象，当多个线程调用这个类时，使用同一个对象时，只有先获得的先执行)<br>
 sychronized(this){}.<br>
-3.给方法加锁。（相当于sychronized(this），就是加锁当前对象）
+3.给方法加锁。（相当于sychronized(this），就是加锁当前对象）<br>
 public synchronized  void m(){}<br>
-4.给静态方法加锁。（这里等同于T.class，给类对象加锁）
+4.给静态方法加锁。（这里等同于T.class，给类对象加锁）<br>
 public synchronized static void m() 。<br>
 5.给类对象加锁<br>
 synchronized(T.class)</p>
