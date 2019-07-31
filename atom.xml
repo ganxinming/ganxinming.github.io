@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ganxinming.github.io</id>
-    <title>Joke</title>
-    <updated>2019-07-28T09:16:03.370Z</updated>
+    <title>BadRibbit</title>
+    <updated>2019-07-31T12:05:29.200Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ganxinming.github.io"/>
     <link rel="self" href="https://ganxinming.github.io/atom.xml"/>
     <subtitle>那些杀不死你的，必将使你变得更加怪异。</subtitle>
     <logo>https://ganxinming.github.io/images/avatar.png</logo>
     <icon>https://ganxinming.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2019, Joke</rights>
+    <rights>All rights reserved 2019, BadRibbit</rights>
     <entry>
         <title type="html"><![CDATA[git常用命令]]></title>
         <id>https://ganxinming.github.io/post/git-chang-yong-ming-ling</id>

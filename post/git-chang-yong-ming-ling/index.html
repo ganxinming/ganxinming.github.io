@@ -3,9 +3,12 @@
 <html lang="zh-CN">
 <head>
  <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>git常用命令 | Joke</title>	
-</style>
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<title>git常用命令 | BadRibbit</title>	
 <link rel="stylesheet" href="https://ganxinming.github.io/styles/main.css">
+<link href="https://ganxinming.github.io/media/scripts/dark.css" rel="alternate stylesheet" type="text/css" title="dark">
 <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <script type='text/javascript' src='https://ganxinming.github.io/media/scripts/script.js'></script>
@@ -18,10 +21,38 @@ header {
     font-size: 16px;
     color: #fff;
     background-size: cover;
-    background-image:url();
+    background-image:url(
+			https://www.z4a.net/images/2019/07/31/2749bca9dd5b0e471.jpg
+			);
 }
 		</style>
+<script>
+(function(){
+    if(document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1") === ''){
+ ||){
 
+        document.querySelector('link[title="dark"]').disabled = true;
+        document.querySelector('link[title="dark"]').disabled = false;
+        document.cookie = "night=1;path=/"
+        console.log('夜间模式开启');
+        }else{
+        document.cookie = "night=0;path=/"
+        console.log('夜间模式关闭');
+        }
+    }else{
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1") || '0';
+        if(night == '0'){
+        document.querySelector('link[title="dark"]').disabled = true;
+        console.log('夜间模式关闭');
+        }else if(night == '1'){
+        document.querySelector('link[title="dark"]').disabled = true;
+        document.querySelector('link[title="dark"]').disabled = false;
+        console.log('夜间模式开启');
+
+        }
+    }
+})();
+</script>
  	
 </head>
 <body class="post-template-default single single-post postid-70 single-format-standard">
@@ -32,7 +63,7 @@ header {
 		
 		>
 			<div class="site-branding">
-									<h1 class="site-title"><a href="https://ganxinming.github.io" rel="home">Joke</a></h1>
+									<h1 class="site-title"><a href="https://ganxinming.github.io" rel="home">BadRibbit</a></h1>
 										
 					<h2 class="site-description">那些杀不死你的，必将使你变得更加怪异。</h2>
 										
@@ -85,7 +116,9 @@ header {
     
 
     
-
+			
+<a  href="https://github.com/ganxinming" target="_blank" ><i class="iconfont icon-github"></i></a>
+ 
     
 
     
@@ -127,7 +160,7 @@ header {
 													 
 		</div>
                   
-			<div class="entry-summary">
+			<div class="entry-summary song">
 				<p><p>常用命令：</p>
 <p>git log :查看日志</p>
 <p>git log  --pretty=oneline :简化日志</p>
