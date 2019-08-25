@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<title>AQS和CAS | BadRibbit</title>	
+<link rel="stylesheet" href="https://ganxinming.github.io/styles/main.css">
+<link href="https://ganxinming.github.io/media/scripts/dark.css" rel="alternate stylesheet" type="text/css" title="dark">
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<script type='text/javascript' src='https://ganxinming.github.io/media/scripts/script.js'></script>
+
+<style type="text/css">
+header {
+    text-align: center;
+    padding: 120px 0px 40px 0px;
+    background: #515865 center no-repeat;
+    font-size: 16px;
+    color: #fff;
+    background-size: cover;
+    background-image:url(
+			https://www.z4a.net/images/2019/07/31/2749bca9dd5b0e471.jpg
+			);
+}
+		</style>
+<script>
+(function(){
+    if(document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1") === ''){
+ ||){
+
+        document.querySelector('link[title="dark"]').disabled = true;
+        document.querySelector('link[title="dark"]').disabled = false;
+        document.cookie = "night=1;path=/"
+        console.log('夜间模式开启');
+        }else{
+        document.cookie = "night=0;path=/"
+        console.log('夜间模式关闭');
+        }
+    }else{
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1") || '0';
+        if(night == '0'){
+        document.querySelector('link[title="dark"]').disabled = true;
+        console.log('夜间模式关闭');
+        }else if(night == '1'){
+        document.querySelector('link[title="dark"]').disabled = true;
+        document.querySelector('link[title="dark"]').disabled = false;
+        console.log('夜间模式开启');
+
+        }
+    }
+})();
+</script>
+ 	
+</head>
+<body class="post-template-default single single-post postid-70 single-format-standard">
+    <div id="wrapper">
+        
+			
+		<header id="header ddq" class="site-header" 
+		
+		>
+			<div class="site-branding">
+									<h1 class="site-title"><a href="https://ganxinming.github.io" rel="home">BadRibbit</a></h1>
+										
+					<h2 class="site-description">那些杀不死你的，必将使你变得更加怪异。</h2>
+										
+							</div>
+			<nav id="nav-wrapper">
+				<div class="container">
+					<div class="nav-toggle">
+						<div class="bars">
+							<div class="bar"></div>
+							<div class="bar"></div>
+							<div class="bar"></div>
+						</div>
+					</div><!-- /nav-toggle -->
+					<div class="clear"></div>
+					<ul id="" class="vtmenu">
+		 
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io"> 首页</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/archives"> 归档</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/tags"> 标签</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/post/about/"> 关于</a></li>
+	
+    
+
+</ul>
+</li>		
+		
+</ul>				</div>
+			</nav><!-- #navigation -->
+						<div class="jingge">
+
+
+    
+
+    
+			
+<a  href="https://github.com/ganxinming" target="_blank" ><i class="iconfont icon-github"></i></a>
+ 
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        </header><!-- #masthead -->
+
+		<div id="content" class="container">
+			<div class="row">
+	<div class="col-md-8 site-main">
+				
+<article id="post-70" class="post-70 post type-post status-publish format-standard hentry category-5 tag-10 tag-9 tag-11">
+
+	
+	                      
+		<div class="entry-content">
+			<h1 class="entry-title">AQS和CAS</h1>
+<div class="entry-meta">
+	
+	           <a href="https://ganxinming.github.io/post/aqs-he-cas">
+							 <i class="iconfont icon-rili"> 
+							</i> 2019-08-25</a> 
+			
+</span>
+													 
+		</div>
+                  
+			<div class="entry-summary song">
+				<p><h4 id="aqs队列同步器它是用来构建锁和其他同步组件的基础框架-是一个抽象类只有方法没有实现通过定义模板方法的方式提供了一套实现锁的模板其最基本的锁实现方式需要子类复写模板">AQS:队列同步器，它是用来构建锁和其他同步组件的基础框架。是一个抽象类，只有方法没有实现，通过定义模板方法的方式提供了一套实现锁的模板，其最基本的锁实现方式需要子类复写模板：</h4>
+<p>内部：</p>
+<p>/指向同步队列队头，<strong>Node为他的内部类</strong><br>
+private transient volatile Node head;</p>
+<p>//指向同步的队尾<br>
+private transient volatile Node tail;</p>
+<p>//同步状态，0代表锁未被占用，1代表锁已被占用</p>
+<p>private volatile int state;</p>
+<h5 id="state表示当前锁状态0表示没用1表示有人占用了">state：表示当前锁状态，0表示没用，1表示有人占用了。</h5>
+<h5 id="同步队列它是一个双端队列便于对节点的操作">同步队列：它是一个双端队列，便于对节点的操作。</h5>
+<p>注意head为空结点，不存储信息。</p>
+<p>当进行lock(),加锁后，判断state的值是否为0，如果是，获得该锁，并将state置为1。如果不是，则将当前</p>
+<h3 id="线程封装成node节点加入同步队列-node的数据结构也可看出其包含了需要同步的线程本身以及线程的状态如是否被阻塞是否等待唤醒是否已经被取消等">线程封装成Node节点，加入同步队列。（<strong>Node的数据结构也可看出，其包含了需要同步的线程本身以及线程的状态，如是否被阻塞，是否等待唤醒，是否已经被取消等</strong>）</h3>
+<p>每个Node结点内部关联其前继结点prev和后继结点next，方便唤醒下一个线程。</p>
+<h4 id="两种模式shared和exclusive常量分别代表共享模式和独占模式">两种模式：SHARED和EXCLUSIVE常量分别代表共享模式和独占模式</h4>
+<p>所谓共享模式是一个锁允许多条线程同时操作，如信号量 Semaphore 采用的就是基于 AQS 的共享模式实现的</p>
+<p>而独占模式则是同一个时间段只能有一个线程对共享资源进行操作，多余的请求线程需要排队等待，如 ReentranLock。</p>
+<h5 id="那怎么实现这两者模式呢">那怎么实现这两者模式呢？</h5>
+<pre><code>//AQS中提供的主要模板方法，由子类实现。
+public abstract class AbstractQueuedSynchronizer
+    extends AbstractOwnableSynchronizer{
+//独占模式下获取锁的方法
+    protected boolean tryAcquire(int arg) {
+        throw new UnsupportedOperationException();
+    }
+//独占模式下解锁的方法
+protected boolean tryRelease(int arg) {
+    throw new UnsupportedOperationException();
+}
+
+//共享模式下获取锁的方法
+protected int tryAcquireShared(int arg) {
+    throw new UnsupportedOperationException();
+}
+
+//共享模式下解锁的方法
+protected boolean tryReleaseShared(int arg) {
+    throw new UnsupportedOperationException();
+}
+</code></pre>
+<hr>
+<p>AQS主要提供模板方法，主要实现，还是靠实现类。看下面，reentrantLock怎么实现独占模式的？</p>
+<h2 id="aqs和reentrantlock关系">AQS和ReentrantLock关系</h2>
+<p>ReentrantLock底层的加锁和解锁就是通过AQS。</p>
+<p>当state=0，说明没有线程占用。如果state=1，则封装成Node加入<strong>同步队列</strong>。</p>
+<p>当<strong>Condition</strong>调用await()方法后，线程将会加入<strong>等待队列</strong>中（注意这里是等待队列）而当Condition调用signal()方法后，线程将从等待队列转移动同步队列中进行锁竞争。</p>
+<h5 id="区别同步队列是竞争资源时发现被占用了进入同步队列-等待队列是还未参加被人通知满了需要等待">区别：同步队列是竞争资源时发现被占用了，进入同步队列。等待队列是，还未参加，被人通知满了，需要等待。</h5>
+<h2 id="reentrantlock内部存在3个实现类分别是sync-nonfairsync-fairsync其中sync继承自aqs实现了解锁tryrelease方法而nonfairsync非公平锁-fairsync公平锁则继承自sync实现了获取锁的tryacquire方法">ReentrantLock内部存在3个实现类，分别是Sync、NonfairSync、FairSync，其中Sync继承自AQS实现了解锁tryRelease()方法，而NonfairSync(非公平锁)、 FairSync(公平锁)则继承自Sync，实现了获取锁的tryAcquire()方法。</h2>
+<p>这样就可以同过类来实现，独占模式。所以模板方法就好在这里，通过实现方法实现，不同的需要实现不同方法，但是底层又是同一套AQS组件。</p>
+<p>看下ReentrantLock源码：</p>
+<pre><code>/默认构造，创建非公平锁NonfairSync
+public ReentrantLock() {
+    sync = new NonfairSync();
+}
+//根据传入参数创建锁类型
+public ReentrantLock(boolean fair) {
+    sync = fair ? new FairSync() : new NonfairSync();
+}
+
+//加锁操作
+public void lock() {
+     sync.lock();
+}
+
+/**
+ * 非公平锁实现
+ 首先对同步状态执行CAS操作，尝试把state的状态从0设置为1，如果返回true则代表获取同步状态成功，也就是当前线程获取锁成功，如果失败，则执行acquire（1）再次尝试。
+ */
+static final class NonfairSync extends Sync {
+    //加锁
+    final void lock() {
+        //执行CAS操作，获取同步状态
+        if (compareAndSetState(0, 1))
+       //成功则将独占锁线程设置为当前线程  
+          setExclusiveOwnerThread(Thread.currentThread());
+        else
+            //否则再次请求同步状态，
+            acquire(1);
+    }
+}
+public final void acquire(int arg) {
+    //再次尝试获取同步状态，这里传入参数arg表示要获取同步状态后设置的值(即要设置state的值)，因为要获取锁，而status为0时是释放锁，1则是获取锁
+    //tryAcquire(arg)返回true，acquireQueued自然不会执行，这是最理想的，因为毕竟当前线程已获取到锁，如果tryAcquire(arg)返回false，则会执行addWaiter(Node.EXCLUSIVE)进行入队操作
+    if (!tryAcquire(arg) &amp;&amp;
+        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+        selfInterrupt();
+}
+
+/**
+ * 释放锁实现
+ */
+ //ReentrantLock类的unlock
+public void unlock() {
+    sync.release(1);
+}
+
+//AQS类的release()方法
+public final boolean release(int arg) {
+    //尝试释放锁
+    if (tryRelease(arg)) {
+
+        Node h = head;
+        if (h != null &amp;&amp; h.waitStatus != 0)
+            //唤醒后继结点的线程
+            unparkSuccessor(h);
+        return true;
+    }
+    return false;
+}
+
+//ReentrantLock类中的内部类Sync实现的tryRelease(int releases) 
+protected final boolean tryRelease(int releases) {
+
+      int c = getState() - releases;
+      if (Thread.currentThread() != getExclusiveOwnerThread())
+          throw new IllegalMonitorStateException();
+      boolean free = false;
+      //判断状态是否为0，如果是则说明已释放同步状态
+      if (c == 0) {
+          free = true;
+          //设置Owner为null
+          setExclusiveOwnerThread(null);
+      }
+      //设置更新同步状态
+      setState(c);
+      return free;
+  }
+</code></pre>
+<h4 id="2原子操作类atomic系列基于cas">2.原子操作类(Atomic系列)基于CAS</h4>
+<p>i++,不是原子性，可分为三步，取值，相加，赋值。</p>
+<p>Atomic保证原子性。常用	:</p>
+<ul>
+<li>AtomicBoolean：原子更新布尔类型</li>
+<li>AtomicInteger：原子更新整型</li>
+<li>AtomicLong：原子更新长整型</li>
+</ul>
+<h2 id="3cas">3.CAS</h2>
+<p>V：内存值 A：预期值 B：成功后的赋值</p>
+<p>不必担心多个线程同时操作，他是原子性指令。</p>
+<h4 id="问题aba问题">问题：ABA问题？</h4>
+<p>在获取到当前变量V，准备修改为新值U前，另外两个线程已连续修改了两次变量V的值，使得该值又恢复为旧值，这样的话，我们就无法正确判断这个变量是否已被修改过</p>
+<h4 id="一般这种情况很少也一般没什么影响-可以使用某些atomic类解决">一般这种情况很少，也一般没什么影响。可以使用某些Atomic类解决。</h4>
+</p>
+							</div>
+	<div class="vt-post-tags">
+ 
+					</div>						
+<nav class="navigation3 post-navigation3" role="navigation">
+		
+		<div class="nav-links3">
+      
+		 
+		<div class="nav-next3"><a href="https://ganxinming.github.io/post/synchronized-he-reentrantlock-di-ceng-yuan-li" rel="next"> synchronized和reentrantLock底层原理：</a></div>
+		
+		</div>
+	</nav>
+		</div>
+		
+ 
+		
+</article>
+
+<div id="marlin_lite_about_widget-2" class="widget marlin_lite_about_widget">
+			<h4 class="widget-title">评论</h4>	
+
+			 
+   
+  
+ 
+
+		</div>
+
+			</div>
+			
+
+
+<div class="col l3 hide-on-med-and-down">
+	
+        <div class="toc-widget">
+			
+            <div class="toc-title"></div>
+			
+            <div id="toc-content">
+			
+			
+			</div>
+        </div>
+    </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.5.0/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '.entry-summary',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            // headingsOffset: -205,
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('.entry-summary').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+    });
+</script>										 
+
+ 
+       
+
+
+			</div>
+		</div>
+
+		
+		 	<footer id="colophon" class="site-footer">
+
+			<div class="container">
+	
+				<div class="copyright">Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<span id="busuanzi_container_site_pv">
+    本站总访问量<span id="busuanzi_value_site_pv"></span>次
+</span><br>Theme:   <a href="https://github.com/alterfang/gridea-theme-pan" target="_blank" title="Pan"><span>Pan</span></a>. Powered by <a href="https://gridea.dev/" target="_blank" title="Gridea"><span>Gridea</span></a></div>		
+			</div><!-- .container -->
+		
+		</footer><!-- #colophon -->
+
+</div>
+
+<script src="https://cdn.bootcss.com/fitvids/1.2.0/jquery.fitvids.min.js"></script>
+<script type='text/javascript' src='https://ganxinming.github.io/media/scripts/marlin-scripts.js'></script>
+
+		<script data-no-instant>
+    (function ($) {
+        $.extend({
+            adamsOverload: function () {
+                $('.navigation:eq(0)').remove();
+                $("").attr("rel" , "external");
+                $("a[rel='external'],a[rel='external nofollow']").attr("target","_blank");
+                $("a.vi").attr("rel" , "");
+                $.viewImage({
+                    'target'  : 'img',
+                    'exclude' : '.vsmile-icons img,.gallery img',
+                    'delay'   : 300
+                });
+                $.lately({
+                    'target' : '.commentmetadata a,.infos time,.post-list time'
+                });
+                prettyPrint();
+                
+                $('ul.links li a').each(function(){
+                    if($(this).parent().find('.bg').length==0){
+                        $(this).parent().append('<!---<div class="bg" style="background-image:url(https://c3.glgoo.top/s2/favicons?domain='+$(this).attr("href")+')"></div>--->')
+                    }
+                });
+            }
+        });
+    })(jQuery);
+    jQuery.adamsOverload();
+</script>
+
+</body>
+</html>

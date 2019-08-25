@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<title>synchronized和reentrantLock底层原理： | BadRibbit</title>	
+<link rel="stylesheet" href="https://ganxinming.github.io/styles/main.css">
+<link href="https://ganxinming.github.io/media/scripts/dark.css" rel="alternate stylesheet" type="text/css" title="dark">
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<script type='text/javascript' src='https://ganxinming.github.io/media/scripts/script.js'></script>
+
+<style type="text/css">
+header {
+    text-align: center;
+    padding: 120px 0px 40px 0px;
+    background: #515865 center no-repeat;
+    font-size: 16px;
+    color: #fff;
+    background-size: cover;
+    background-image:url(
+			https://www.z4a.net/images/2019/07/31/2749bca9dd5b0e471.jpg
+			);
+}
+		</style>
+<script>
+(function(){
+    if(document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1") === ''){
+ ||){
+
+        document.querySelector('link[title="dark"]').disabled = true;
+        document.querySelector('link[title="dark"]').disabled = false;
+        document.cookie = "night=1;path=/"
+        console.log('夜间模式开启');
+        }else{
+        document.cookie = "night=0;path=/"
+        console.log('夜间模式关闭');
+        }
+    }else{
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1") || '0';
+        if(night == '0'){
+        document.querySelector('link[title="dark"]').disabled = true;
+        console.log('夜间模式关闭');
+        }else if(night == '1'){
+        document.querySelector('link[title="dark"]').disabled = true;
+        document.querySelector('link[title="dark"]').disabled = false;
+        console.log('夜间模式开启');
+
+        }
+    }
+})();
+</script>
+ 	
+</head>
+<body class="post-template-default single single-post postid-70 single-format-standard">
+    <div id="wrapper">
+        
+			
+		<header id="header ddq" class="site-header" 
+		
+		>
+			<div class="site-branding">
+									<h1 class="site-title"><a href="https://ganxinming.github.io" rel="home">BadRibbit</a></h1>
+										
+					<h2 class="site-description">那些杀不死你的，必将使你变得更加怪异。</h2>
+										
+							</div>
+			<nav id="nav-wrapper">
+				<div class="container">
+					<div class="nav-toggle">
+						<div class="bars">
+							<div class="bar"></div>
+							<div class="bar"></div>
+							<div class="bar"></div>
+						</div>
+					</div><!-- /nav-toggle -->
+					<div class="clear"></div>
+					<ul id="" class="vtmenu">
+		 
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io"> 首页</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/archives"> 归档</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/tags"> 标签</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/post/about/"> 关于</a></li>
+	
+    
+
+</ul>
+</li>		
+		
+</ul>				</div>
+			</nav><!-- #navigation -->
+						<div class="jingge">
+
+
+    
+
+    
+			
+<a  href="https://github.com/ganxinming" target="_blank" ><i class="iconfont icon-github"></i></a>
+ 
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        </header><!-- #masthead -->
+
+		<div id="content" class="container">
+			<div class="row">
+	<div class="col-md-8 site-main">
+				
+<article id="post-70" class="post-70 post type-post status-publish format-standard hentry category-5 tag-10 tag-9 tag-11">
+
+	
+	                      
+		<div class="entry-content">
+			<h1 class="entry-title">synchronized和reentrantLock底层原理：</h1>
+<div class="entry-meta">
+	
+	           <a href="https://ganxinming.github.io/post/synchronized-he-reentrantlock-di-ceng-yuan-li">
+							 <i class="iconfont icon-rili"> 
+							</i> 2019-08-25</a> 
+			
+</span>
+													 
+		</div>
+                  
+			<div class="entry-summary song">
+				<p><h3 id="synchronized">synchronized：</h3>
+<p>monitor对象存在于每个Java对象的对象头中(存储的指针的指向)，synchronized锁便是通过这种方式获取锁的，也是为什么Java中任意对象可以作为锁的原因，同时也是notify/notifyAll/wait等方法存在于顶级对象Object中的原因.</p>
+<p>Mark Word中的锁标记(偏向锁，轻量级，重量级)，其中重量级锁指向的是monitor对象，每个对象都存在着一个 monitor 与之关联，但当一个 monitor 被某个线程持有后，它便处于锁定状态。monitor是由ObjectMonitor实现的。ObjectMonitor中有两个队列_WaitSet 和 _EntryList，用来保存ObjectWaiter对象列表( 每个等待锁的线程都会被封装成ObjectWaiter对象)，<br>
+_owner指向持有ObjectMonitor对象的线程，当多个线程同时访问一段同步代码时，首先会进入 _EntryList 集合，当线程获取到对象的monitor 后进入 _Owner 区域并把monitor中的owner变量设置为当前线程同时monitor中的计数器count加1，若线程调用 wait() 方法，将释放当前持有的monitor，owner变量恢复为null，count自减1，同时该线程进入 WaitSe t集合中等待被唤醒。若当前线程执行完毕也将释放monitor(锁)并复位变量的值，以便其他线程进入获取monitor(锁)。</p>
+<h4 id="总结线程获得monitor后-_-ower设置成当前线程count1-若没获得_entrylist-中等待-若此时调用wait释放锁则count-1_ower为null并进入-waitset等待唤醒">总结：线程获得monitor后, _ ower设置成当前线程，count+1。若没获得，_EntryList 中等待。若此时调用wait，释放锁，则count-1，_ower为null，并进入 WaitSet等待唤醒。</h4>
+<p>进过javap(反编译)，同步语句块的实现使用的是monitorenter 和 monitorexit 指令。其中monitorenter指令指向同步代码块的开始位置，monitorexit指令则指明同步代码块的结束位置。当执行monitorenter指令时，当前线程将试图获取 objectref(即对象锁) 所对应的 monitor 的持有权，当 objectref 的 monitor 的进入计数器为 0，那线程可以成功取得 monitor，并将计数器值设置为 1，取锁成功。其他线程阻塞，等到锁释放。</p>
+<p>出现两次monitorexit ，是因为有重入。</p>
+<h4 id="synchronized方法底层原理">synchronized方法底层原理：</h4>
+<p>上面只是普通synchronized代码块的原理，synchronized修饰的方法并没有monitorenter指令和monitorexit指令，取得代之的确实是ACC_SYNCHRONIZED标识，该标识指明了该方法是一个同步方法，JVM通过该ACC_SYNCHRONIZED访问标志来辨别一个方法是否声明为同步方法，从而执行相应的同步调用。当方法调用时，调用指令将会 检查方法的 ACC_SYNCHRONIZED 访问标志是否被设置，如果设置了，执行线程将先持有monitor（虚拟机规范中用的是管程一词）， 然后再执行方法，最后再方法完成(无论是正常完成还是非正常完成)时释放monitor。<br>
+同时我们还必须注意到的是在Java早期版本中，synchronized属于重量级锁，效率低下，因为监视器锁（monitor）是依赖于底层的操作系统的Mutex Lock来实现的，而操作系统实现线程之间的切换时需要从用户态转换到核心态，这个状态之间的转换需要相对比较长的时间，时间成本相对较高，这也是为什么早期的synchronized效率低的原因。</p>
+<h3 id="reentrantlock">reentrantLock：</h3>
+<p>lock只是依赖于API，lock,unlock()。但是为什么这两个方法就可以完成同步加锁呢？</p>
+<p>首先看看reentrantLock中有什么类？</p>
+<p>reentrantLock内部存在3个实现类，分别是Sync(继承AQS的抽象类)、NonfairSync、FairSync，其中Sync继承自AQS实现了尝试解锁tryRelease()方法，而NonfairSync(非公平锁)、 FairSync(公平锁)则继承自Sync，实现了尝试获取锁的tryAcquire()方法.</p>
+<p>/默认构造，创建非公平锁NonfairSync<br>
+public ReentrantLock() {<br>
+sync = new NonfairSync();<br>
+}<br>
+//根据传入参数创建锁类型<br>
+public ReentrantLock(boolean fair) {<br>
+sync = fair ? new FairSync() : new NonfairSync();<br>
+}</p>
+<p>//加锁操作<br>
+public void lock() {<br>
+sync.lock();<br>
+}</p>
+<p>那么为什么这个lock就能实现同步？</p>
+<p>final void lock() {<br>
+//执行CAS操作，获取同步状态<br>
+if (compareAndSetState(0, 1))<br>
+//成功则将独占锁线程设置为当前线程<br>
+setExclusiveOwnerThread(Thread.currentThread());<br>
+else<br>
+//否则再次请求同步状态，<br>
+acquire(1);<br>
+}</p>
+<h5 id="底层通过cas操作来判断stateaqs中锁状态位是否占用线程-acquire方法里使用tryacquire尝试获得锁">底层通过CAS操作来判断state(AQS中锁状态位)是否占用线程。acquire方法里使用tryAcquire()尝试获得锁。</h5>
+<p>public final void acquire(int arg) {<br>
+//再次尝试获取同步状态，这里传入参数arg表示要获取同步状态后设置的值(即要设置state的值)，因为要获取锁，而status为0时是释放锁，1则是获取锁<br>
+//tryAcquire(arg)返回true，acquireQueued自然不会执行，这是最理想的，因为毕竟当前线程已获取到锁，如果tryAcquire(arg)返回false，则会执行addWaiter(Node.EXCLUSIVE)进行入队操作<br>
+if (!tryAcquire(arg) &amp;&amp;<br>
+acquireQueued(addWaiter(Node.EXCLUSIVE), arg))<br>
+selfInterrupt();<br>
+}</p>
+<h4 id="锁的释放">锁的释放：</h4>
+<p>/**释放锁实现<br>
+*/<br>
+//ReentrantLock类的unlock<br>
+public void unlock() {<br>
+sync.release(1);<br>
+}</p>
+<p>public final boolean release(int arg) {<br>
+//尝试释放锁<br>
+if (tryRelease(arg)) {</p>
+<pre><code>Node h = head;
+if (h != null &amp;&amp; h.waitStatus != 0)
+    //唤醒后继结点的线程
+    unparkSuccessor(h);
+return true;
+</code></pre>
+<p>}<br>
+return false;}</p>
+<h4 id="总结通过synclock实现加锁-lock通过cas获取同步状态若未成功通过acquire不断尝试获取acquire中又通过tryacquire尝试获取-unlock通过release释放锁里面通过tryrelease尝试释放并唤醒后续线程">总结：通过sync.lock()实现加锁。lock()通过CAS获取同步状态，若未成功通过acquire()不断尝试获取，acquire()中又通过tryAcquire()尝试获取。unlock()通过release（）释放锁，里面通过tryRelease(),尝试释放，并唤醒后续线程。</h4>
+<h4 id="使用的区别">使用的区别：</h4>
+<p>1.无论是使用synchronized还是reentrantLock都是一样，都是用于在某个地方加锁。这个都无所谓<br>
+他们的区别无非是：<br>
+sychronized:是直接加锁执行完则自动释放了。synchronized(this){}执行完自动释放。<br>
+reentrantLock: 是需要在lock.lock()，最后同步代码的结尾是lock.unlock()。<br>
+2.我应该明白的是在在哪个位置加锁才有用？<br>
+1.比如题目：三个线程分别打印A，B，C,循环十次。那么锁应该加在哪里？<br>
+仔细分析下条件，他们分别是在循环中被抢占执行的，所以锁肯定要加在循环中。<br>
+在锁中执行完代码，状态标志改变，且唤醒其他线程，并释放锁。<br>
+2.比如题目：三个线程分别打印10次A,B,C，循环20次。这里锁加哪里？<br>
+竞争条件还是在20次循环中，只不过竞争成功后，执行10次罢了。</p>
+<p>3.注意：使用reentrantLock的条件时可以使用三个不同的condition条件。<br>
+所以他唤醒时只需使用对应condition唤醒，conditionA.signal(),唤醒单个condition。<br>
+但是sychronized不一样，他锁的是同一个对象，只能用this.wait(),这样的话唤醒时不能向上面一样<br>
+他必须使用this.notifyAll(),唤醒所有。<br>
+当然不是说reentrantLock也必须使用不同条件，其实同理，他也可以使用一个condition，但是唤醒时也是signifAll<br>
+所以区别是：synchronize必须notifyAll()，而reentrantLock也可以，但是它可以更细粒度。</p>
+<p>4.无论是reentrantLock还是sychronized都必须确保是同一个锁对象。<br>
+如：reentrantLock确保三个线程是同一个lock。sychronized确保方法调用时是同一个对象。</p>
+</p>
+							</div>
+	<div class="vt-post-tags">
+ 
+				<a href="https://ganxinming.github.io/tag/NvcN0lUBn" rel="tag">java多线程</a>	
+				 
+					</div>						
+<nav class="navigation3 post-navigation3" role="navigation">
+		
+		<div class="nav-links3">
+      
+		<div class="nav-previous3"><a href="https://ganxinming.github.io/post/aqs-he-cas" rel="prev"> AQS和CAS</a></div>
+		 
+		 
+		<div class="nav-next3"><a href="https://ganxinming.github.io/post/git-chang-yong-ming-ling" rel="next"> git常用命令</a></div>
+		
+		</div>
+	</nav>
+		</div>
+		
+ 
+		
+</article>
+
+<div id="marlin_lite_about_widget-2" class="widget marlin_lite_about_widget">
+			<h4 class="widget-title">评论</h4>	
+
+			 
+   
+  
+ 
+
+		</div>
+
+			</div>
+			
+
+
+<div class="col l3 hide-on-med-and-down">
+	
+        <div class="toc-widget">
+			
+            <div class="toc-title"></div>
+			
+            <div id="toc-content">
+			
+			
+			</div>
+        </div>
+    </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.5.0/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '.entry-summary',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            // headingsOffset: -205,
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('.entry-summary').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+    });
+</script>										 
+
+ 
+       
+
+
+			</div>
+		</div>
+
+		
+		 	<footer id="colophon" class="site-footer">
+
+			<div class="container">
+	
+				<div class="copyright">Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<span id="busuanzi_container_site_pv">
+    本站总访问量<span id="busuanzi_value_site_pv"></span>次
+</span><br>Theme:   <a href="https://github.com/alterfang/gridea-theme-pan" target="_blank" title="Pan"><span>Pan</span></a>. Powered by <a href="https://gridea.dev/" target="_blank" title="Gridea"><span>Gridea</span></a></div>		
+			</div><!-- .container -->
+		
+		</footer><!-- #colophon -->
+
+</div>
+
+<script src="https://cdn.bootcss.com/fitvids/1.2.0/jquery.fitvids.min.js"></script>
+<script type='text/javascript' src='https://ganxinming.github.io/media/scripts/marlin-scripts.js'></script>
+
+		<script data-no-instant>
+    (function ($) {
+        $.extend({
+            adamsOverload: function () {
+                $('.navigation:eq(0)').remove();
+                $("").attr("rel" , "external");
+                $("a[rel='external'],a[rel='external nofollow']").attr("target","_blank");
+                $("a.vi").attr("rel" , "");
+                $.viewImage({
+                    'target'  : 'img',
+                    'exclude' : '.vsmile-icons img,.gallery img',
+                    'delay'   : 300
+                });
+                $.lately({
+                    'target' : '.commentmetadata a,.infos time,.post-list time'
+                });
+                prettyPrint();
+                
+                $('ul.links li a').each(function(){
+                    if($(this).parent().find('.bg').length==0){
+                        $(this).parent().append('<!---<div class="bg" style="background-image:url(https://c3.glgoo.top/s2/favicons?domain='+$(this).attr("href")+')"></div>--->')
+                    }
+                });
+            }
+        });
+    })(jQuery);
+    jQuery.adamsOverload();
+</script>
+
+</body>
+</html>
