@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<title>Mysql的MVCC到底是啥？ | BadRibbit</title>	
+<link rel="stylesheet" href="https://ganxinming.github.io/styles/main.css">
+<link href="https://ganxinming.github.io/media/scripts/dark.css" rel="alternate stylesheet" type="text/css" title="dark">
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<script type='text/javascript' src='https://ganxinming.github.io/media/scripts/script.js'></script>
+
+<style type="text/css">
+header {
+    text-align: center;
+    padding: 120px 0px 40px 0px;
+    background: #515865 center no-repeat;
+    font-size: 16px;
+    color: #fff;
+    background-size: cover;
+    background-image:url(
+			https://www.z4a.net/images/2019/07/31/2749bca9dd5b0e471.jpg
+			);
+}
+		</style>
+<script>
+(function(){
+    if(document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1") === ''){
+ ||){
+
+        document.querySelector('link[title="dark"]').disabled = true;
+        document.querySelector('link[title="dark"]').disabled = false;
+        document.cookie = "night=1;path=/"
+        console.log('夜间模式开启');
+        }else{
+        document.cookie = "night=0;path=/"
+        console.log('夜间模式关闭');
+        }
+    }else{
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1") || '0';
+        if(night == '0'){
+        document.querySelector('link[title="dark"]').disabled = true;
+        console.log('夜间模式关闭');
+        }else if(night == '1'){
+        document.querySelector('link[title="dark"]').disabled = true;
+        document.querySelector('link[title="dark"]').disabled = false;
+        console.log('夜间模式开启');
+
+        }
+    }
+})();
+</script>
+ 	
+</head>
+<body class="post-template-default single single-post postid-70 single-format-standard">
+    <div id="wrapper">
+        
+			
+		<header id="header ddq" class="site-header" 
+		
+		>
+			<div class="site-branding">
+									<h1 class="site-title"><a href="https://ganxinming.github.io" rel="home">BadRibbit</a></h1>
+										
+					<h2 class="site-description">那些杀不死你的，必将使你变得更加怪异。</h2>
+										
+							</div>
+			<nav id="nav-wrapper">
+				<div class="container">
+					<div class="nav-toggle">
+						<div class="bars">
+							<div class="bar"></div>
+							<div class="bar"></div>
+							<div class="bar"></div>
+						</div>
+					</div><!-- /nav-toggle -->
+					<div class="clear"></div>
+					<ul id="" class="vtmenu">
+		 
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io"> 首页</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/archives"> 归档</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/tags"> 标签</a></li>
+	
+    
+     			
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12">
+	 
+	<a  href="https://ganxinming.github.io/post/about/"> 关于</a></li>
+	
+    
+
+</ul>
+</li>		
+		
+</ul>				</div>
+			</nav><!-- #navigation -->
+						<div class="jingge">
+
+
+    
+
+    
+			
+<a  href="https://github.com/ganxinming" target="_blank" ><i class="iconfont icon-github"></i></a>
+ 
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        </header><!-- #masthead -->
+
+		<div id="content" class="container">
+			<div class="row">
+	<div class="col-md-8 site-main">
+				
+<article id="post-70" class="post-70 post type-post status-publish format-standard hentry category-5 tag-10 tag-9 tag-11">
+
+	
+	                      
+		<div class="entry-content">
+			<h1 class="entry-title">Mysql的MVCC到底是啥？</h1>
+<div class="entry-meta">
+	
+	           <a href="https://ganxinming.github.io/post/mysql-de-mvcc-dao-di-shi-sha">
+							 <i class="iconfont icon-rili"> 
+							</i> 2019-09-01</a> 
+			
+</span>
+													 
+		</div>
+                  
+			<div class="entry-summary song">
+				<p><p>正如标题，MVCC到底是什么？<br>
+MVCC：多版本并发控制。把数据库的行锁与行的多个版本结合起来，实现并发控制。<br>
+<strong>作用</strong>:<br>
+<strong>1.Innodb的MVCC能防止幻读的发生。(不是每个MVCC都可以，看MVCC怎么实现)</strong><br>
+<strong>2.实现了多个事务并发下，读操作的非阻塞。</strong><br>
+<strong>场景</strong>：MVCC只在REPEATABLE READ和READ COMMITTED两个隔离级别下工作。其他两个隔离级别都和MVCC不兼容，因为READ UNCOMMITTED总是读取最新的数据行，而不是符合当前事务版本的数据。行，而SERIALIZABLE会对所有读取到的行都加锁。<br>
+<strong>原理</strong>：MVCC保存了某一时刻数据的一个快照。意思就是无论事物运行了多久，它们都能看到一致的数据。也就是说在相同的时间下，不同的事物看相同表的数据是不同的。<br>
+<strong>底层原理</strong>：通过在每行记录后面保存两个隐藏的列来实现。这两个列，一个保存了行的创建时间，一个保存了行的过期时间（删除时间）。并且存储的并不是真实的时间值，而是系统版本号（system version number）。每开始一个新的事务，系统版本号都会自动递增。开始时刻的系统版本号会作为事务的版本号，用来和查询到的每行记录的版本号进行比较。<br>
+<strong>事务操作</strong>:<br>
+SELECT<br>
+InnoDB会根据以下两个条件检查没行记录：<br>
+a. InnoDB只会查找版本早于当前事务版本的数据行（也就是，行的系统版本小于或等于事务的系统版本号），这样可以确保事务读取到的行，要么是事务开始前已经存在的，要么是事务自身插入或者修改过的。<br>
+b. 行的删除版本要么未定义，要么大于当前事务的版本号。这样可以确保事务读取到的行,在事务之前未被删除。只有符合上述两个条件的记录，才能被作为返回查询结果.<br>
+INSERT<br>
+InnoDB为新插入的一行保存当前系统版本号作为行版本号<br>
+DELETE<br>
+InnoDB为删除的每一行保存当前系统版本号作为删除标识,如果事务a版本号为3且之后执行了删除事务b的版本号为5，那么即使删除了数据，在事务a中还是能查出数据。<br>
+UPDATE<br>
+UPDATE为插入一行新纪录，保存当前系统版本号作为行版本号，同时保存当前系统版本号到原来的行作为删除标识。</p>
+<p><strong>锁</strong>：<br>
+MySQL InnoDB支持三种行锁定方式：<br>
+行锁（Record Lock）:锁直接加在索引记录上面，锁住的是key。<br>
+<strong>间隙锁（Gap Lock）:锁定索引记录间隙，确保索引记录的间隙不变。相当于在行间隙的上或下加锁。这样就不能随便加锁。</strong><br>
+<strong>Next-Key Lock ：行锁和间隙锁组合起来就叫Next-Key Lock</strong><br>
+<strong>默认情况下，InnoDB工作在可重复读隔离级别下，并且会以Next-Key Lock的方式对数据行进行加锁，这样可以有效防止幻读的发生</strong>。<br>
+扩展锁的知识：<br>
+X :写锁：又称排他锁、X锁。若事务T对数据对象A加上X锁，事务T可以读A也可以修改A，其他事务不能再对A加任何锁，直到T释放A上的锁。这保证了其他事务在T释放A上的锁之前不能再读取和修改A。<br>
+S:读锁：也叫共享锁、S锁，若事务T对数据对象A加上S锁，则事务T可以读A但不能修改A，其他事务只能再对A加S锁，而不能加X锁，直到T释放A上的S 锁。这保证了其他事务可以读A，但在T释放A上的S锁之前不能对A做任何修改。<br>
+IX::意向排他锁：表示有加排他锁的意向。<br>
+IS::意向共享锁：表示有加共享锁的意向。<br>
+<strong>顺便提下日志</strong><br>
+<strong>binlog：</strong><br>
+MySQL是多存储引擎的，不管使用那种存储引擎，都会有binlog，而不一定有redo log，简单的说，binlog是MySQL Server层的，redo log是InnoDB层的。<br>
+binlog:用于记录用户对数据库更新的SQL语句信息，例如更改数据库表和更改内容的SQL语句都会记录到binlog里，但是对库表等内容的查询不会记录<br>
+<strong>redo和undo：</strong><br>
+redo log是重做日志，提供前滚操作，undo log是回滚日志，提供回滚操作。<br>
+1.redo log通常是物理日志，记录的是数据页的物理修改，而不是某一行或某几行修改成怎样怎样，它用来恢复提交后的物理数据页(恢复数据页，且只能恢复到最后一次提交的位置)。<br>
+2.undo用来回滚行记录到某个版本。undo log一般是逻辑日志，根据每行记录进行记录。可以认为当delete一条记录时，undo log中会记录一条对应的insert记录，反之亦然，当update一条记录时，它记录一条对应相反的update记录。当执行rollback时，就可以从undo log中的逻辑记录读取到相应的内容并进行回滚。</p>
+<h3 id="mvcc就是利用undo实现的当读取的某一行被其他事务锁定时它可以从undo-log中分析出该行记录以前的数据是什么从而提供该行版本信息让用户实现非锁定一致性读取">MVCC就是利用undo实现的，当读取的某一行被其他事务锁定时，它可以从undo log中分析出该行记录以前的数据是什么，从而提供该行版本信息，让用户实现非锁定一致性读取。</h3>
+<h1 id="总结1无非就是通过两个标志位记录版本号来实现多事务操作下读的非阻塞即不会因为同一时刻受到其他事物的增删改的影响利用undo日志查看到版本号-2通过-next-key-lock-实现防止幻读的发生">总结：1.无非就是通过两个标志位记录版本号，来实现多事务操作下，读的非阻塞(即不会因为同一时刻受到其他事物的增删改的影响，利用undo日志查看到版本号)。2.通过 Next-Key Lock 实现防止幻读的发生。</h1>
+</p>
+							</div>
+	<div class="vt-post-tags">
+ 
+					</div>						
+<nav class="navigation3 post-navigation3" role="navigation">
+		
+		<div class="nav-links3">
+      
+		 
+		<div class="nav-next3"><a href="https://ganxinming.github.io/post/aqs-he-cas" rel="next"> AQS和CAS</a></div>
+		
+		</div>
+	</nav>
+		</div>
+		
+ 
+		
+</article>
+
+<div id="marlin_lite_about_widget-2" class="widget marlin_lite_about_widget">
+			<h4 class="widget-title">评论</h4>	
+
+			 
+   
+  
+ 
+
+		</div>
+
+			</div>
+			
+
+
+<div class="col l3 hide-on-med-and-down">
+	
+        <div class="toc-widget">
+			
+            <div class="toc-title"></div>
+			
+            <div id="toc-content">
+			
+			
+			</div>
+        </div>
+    </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.5.0/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '.entry-summary',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            // headingsOffset: -205,
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('.entry-summary').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+    });
+</script>										 
+
+ 
+       
+
+
+			</div>
+		</div>
+
+		
+		 	<footer id="colophon" class="site-footer">
+
+			<div class="container">
+	
+				<div class="copyright">Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<span id="busuanzi_container_site_pv">
+    本站总访问量<span id="busuanzi_value_site_pv"></span>次
+</span><br>Theme:   <a href="https://github.com/alterfang/gridea-theme-pan" target="_blank" title="Pan"><span>Pan</span></a>. Powered by <a href="https://gridea.dev/" target="_blank" title="Gridea"><span>Gridea</span></a></div>		
+			</div><!-- .container -->
+		
+		</footer><!-- #colophon -->
+
+</div>
+
+<script src="https://cdn.bootcss.com/fitvids/1.2.0/jquery.fitvids.min.js"></script>
+<script type='text/javascript' src='https://ganxinming.github.io/media/scripts/marlin-scripts.js'></script>
+
+		<script data-no-instant>
+    (function ($) {
+        $.extend({
+            adamsOverload: function () {
+                $('.navigation:eq(0)').remove();
+                $("").attr("rel" , "external");
+                $("a[rel='external'],a[rel='external nofollow']").attr("target","_blank");
+                $("a.vi").attr("rel" , "");
+                $.viewImage({
+                    'target'  : 'img',
+                    'exclude' : '.vsmile-icons img,.gallery img',
+                    'delay'   : 300
+                });
+                $.lately({
+                    'target' : '.commentmetadata a,.infos time,.post-list time'
+                });
+                prettyPrint();
+                
+                $('ul.links li a').each(function(){
+                    if($(this).parent().find('.bg').length==0){
+                        $(this).parent().append('<!---<div class="bg" style="background-image:url(https://c3.glgoo.top/s2/favicons?domain='+$(this).attr("href")+')"></div>--->')
+                    }
+                });
+            }
+        });
+    })(jQuery);
+    jQuery.adamsOverload();
+</script>
+
+</body>
+</html>
