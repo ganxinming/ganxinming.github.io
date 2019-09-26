@@ -165,7 +165,7 @@ header {
 MVCC：多版本并发控制。把数据库的行锁与行的多个版本结合起来，实现并发控制。<br>
 <strong>作用</strong>:<br>
 <strong>1.Innodb的MVCC能防止幻读的发生。(不是每个MVCC都可以，看MVCC怎么实现)</strong><br>
-<strong>2.实现了多个事务并发下，读操作的非阻塞。</strong><br>
+<strong>2.实现了多个事务并发下，读操作的非阻塞。解决了脏读和重复读</strong><br>
 <strong>场景</strong>：MVCC只在REPEATABLE READ和READ COMMITTED两个隔离级别下工作。其他两个隔离级别都和MVCC不兼容，因为READ UNCOMMITTED总是读取最新的数据行，而不是符合当前事务版本的数据。行，而SERIALIZABLE会对所有读取到的行都加锁。<br>
 <strong>原理</strong>：MVCC保存了某一时刻数据的一个快照。意思就是无论事物运行了多久，它们都能看到一致的数据。也就是说在相同的时间下，不同的事物看相同表的数据是不同的。<br>
 <strong>底层原理</strong>：通过在每行记录后面保存两个隐藏的列来实现。这两个列，一个保存了行的创建时间，一个保存了行的过期时间（删除时间）。并且存储的并不是真实的时间值，而是系统版本号（system version number）。每开始一个新的事务，系统版本号都会自动递增。开始时刻的系统版本号会作为事务的版本号，用来和查询到的每行记录的版本号进行比较。<br>
